@@ -9,10 +9,8 @@ const taskRoutes = require('./routes/Task.js');
 
 const app = express();
 
-// ✅ Parse JSON
 app.use(express.json());
 
-// ✅ CORS configuration
 const allowedOrigins = [
   "http://localhost:5173",
   "https://user-frontend-zoss.vercel.app"
@@ -33,19 +31,33 @@ app.use(cors({
   credentials: true
 }));
 
-// ✅ Routes
+
+let cached = global.mongoose; // cached connection
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectDB() {
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(process.env.MONGO_URL).then(m => m);
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Server is running!' });
 });
+connectDB().then(() => console.log('MongoDB connected'));
+const PORT = 5000; 
 
-// ✅ MongoDB connection
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-// ❌ Remove app.listen() for Vercel serverless deployment
-// Only export app
 module.exports = app;
