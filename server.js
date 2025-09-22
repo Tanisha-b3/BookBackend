@@ -23,19 +23,21 @@ app.use("/api/bookings", bookingsRouter);
 
 const MONGO_URL = process.env.MONGO_URL;
 
-// Vercel handler
+// Vercel Serverless Handler
 export default async function handler(req, res) {
   try {
-    // Connect to MongoDB on every invocation
-    await mongoose.connect(MONGO_URL, { 
-      useNewUrlParser: true, 
-      useUnifiedTopology: true 
-    });
-
-    // Forward the request to Express
+    if (mongoose.connection.readyState === 0) {
+      // Connect to MongoDB on each invocation if not connected
+      await mongoose.connect(MONGO_URL, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+    }
+    
+    // Forward request to Express app
     app(req, res);
   } catch (err) {
-    console.error("Mongo connection error:", err.message);
-    res.status(500).json({ error: "Database connection failed" });
+    console.error("MongoDB connection failed:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }

@@ -1,4 +1,3 @@
-import { number } from "joi";
 import mongoose from "mongoose";
 
 const CarDetailsSchema = new mongoose.Schema({
@@ -10,7 +9,7 @@ const CarDetailsSchema = new mongoose.Schema({
 
 const BookingSchema = new mongoose.Schema({
   customerName: { type: String, required: true, trim: true, index: true },
-  phoneNumber:{ type : number},
+  phoneNumber:{ type : Number},
   carDetails: { type: CarDetailsSchema },
   serviceType: { type: String, enum: ["Basic Wash", "Deluxe Wash", "Full Detailing"], required: true, index: true },
   date: { type: Date, required: true, index: true },
